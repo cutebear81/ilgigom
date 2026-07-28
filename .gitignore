@@ -1,0 +1,27 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# 생성물 (xcodegen이 project.yml에서 생성)
+Ilgigom.xcodeproj/
+
+# 작업용 스크립트/목업
+_ui_mock.py
+_ui_v2.py
+ui_mock/
+ui_v2/

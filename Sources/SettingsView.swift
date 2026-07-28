@@ -1,0 +1,174 @@
+import SwiftUI
+import SwiftData
+import UIKit
+
+// 내보내기용 DTO
+private struct EntryDTO: Codable {
+    var date: String; var year: Int; var text: String; var mood: String?; var createdAt: Date
+}
+
+struct SettingsView: View {
+    @Query private var allEntries: [Entry]
+    @Environment(\.openURL) private var openURL
+
+    @AppStorage("reminderEnabled") private var reminderEnabled = false
+    @AppStorage("reminderHour") private var reminderHour = 21
+    @AppStorage("reminderMinute") private var reminderMinute = 0
+    @AppStorage("lockEnabled") private var lockEnabled = false
+
+    @State private var showExport = false
+    @State private var showTipJar = false
+
+    private var filledCount: Int { allEntries.filter { !$0.isEmpty }.count }
+
+    /// AppStorage(hour/minute) ↔ DatePicker(Date) 브리지
+    private var reminderTime: Binding<Date> {
+        Binding(
+            get: {
+                var c = DateComponents(); c.hour = reminderHour; c.minute = reminderMinute
+                return Calendar.current.date(from: c) ?? Date()
+            },
+            set: { newValue in
+                let c = Calendar.current.dateComponents([.hour, .minute], from: newValue)
+                reminderHour = c.hour ?? 21
+                reminderMinute = c.minute ?? 0
+                if reminderEnabled { ReminderManager.schedule(hour: reminderHour, minute: reminderMinute) }
+            }
+        )
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                DiaryHeader()
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 16) {
+                        summaryCard
+
+                        // 알림 · 잠금
+                        settingsGroup {
+                            toggleRow(icon: "bell", title: "매일 알림", isOn: Binding(
+                                get: { reminderEnabled },
+                                set: { on in
+                                    reminderEnabled = on
+                                    if on { ReminderManager.enable(hour: reminderHour, minute: reminderMinute) }
+                                    else { ReminderManager.cancel() }
+                                }
+                            ))
+                            if reminderEnabled {
+                                divider
+                                HStack(spacing: 14) {
+                                    Image(systemName: "clock").font(.system(size: 16)).foregroundStyle(Color.dgAccent).frame(width: 22)
+                                    Text("알림 시간").font(.system(size: 15, weight: .medium)).foregroundStyle(Color.dgInk)
+                                    Spacer()
+                                    DatePicker("", selection: reminderTime, displayedComponents: .hourAndMinute)
+                                        .labelsHidden().tint(Color.dgAccent)
+                                }
+                                .padding(.horizontal, 16).padding(.vertical, 10)
+                            }
+                            divider
+                            toggleRow(icon: "lock", title: "앱 잠금", isOn: $lockEnabled)
+                        }
+
+                        // 백업 (iCloud)
+                        settingsGroup {
+                            Button { showExport = true } label: {
+                                linkRow(icon: "icloud.and.arrow.up", title: "iCloud로 내보내기 · 백업")
+                            }
+                        }
+
+                        // 지원
+                        settingsGroup {
+                            Button { showTipJar = true } label: {
+                                linkRow(icon: "heart", title: "후원하기")
+                            }
+                            divider
+                            Button {
+                                openURL(URL(string: "mailto:tonyneplanning@gmail.com?subject=일기곰%20문의")!)
+                            } label: {
+                                linkRow(icon: "envelope", title: "문의하기")
+                            }
+                            divider
+                            linkRow(icon: "info.circle", title: "버전", trailing: "0.1.0")
+                        }
+
+                        Text("일기곰 · 하루 한 줄, 10년의 오늘")
+                            .font(.system(size: 11)).foregroundStyle(Color.dgFaint).padding(.top, 8)
+                    }
+                    .padding(.horizontal, 20).padding(.bottom, 30)
+                }
+            }
+            .background(Color.dgBackground.ignoresSafeArea())
+            .sheet(isPresented: $showExport) {
+                if let url = exportFileURL() {
+                    ActivityView(items: [url])
+                } else {
+                    Text("내보낼 기록이 없어요").padding()
+                }
+            }
+            .sheet(isPresented: $showTipJar) { TipJarView() }
+        }
+    }
+
+    private var summaryCard: some View {
+        VStack(spacing: 6) {
+            Text("🐻").font(.system(size: 40))
+            Text("지금까지 \(filledCount)일 기록했어요")
+                .font(.system(size: 16, weight: .bold)).foregroundStyle(Color.dgInk)
+            Text("\(String(DiaryConfig.years.first ?? 0)) – \(String(DiaryConfig.years.last ?? 0)) · 10년의 오늘")
+                .font(.system(size: 12)).foregroundStyle(Color.dgSub)
+        }
+        .frame(maxWidth: .infinity).padding(.vertical, 24)
+        .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Color.dgCard))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Color.dgLine, lineWidth: 1))
+    }
+
+    private func exportFileURL() -> URL? {
+        let dtos = allEntries.filter { !$0.isEmpty }
+            .map { EntryDTO(date: $0.date, year: $0.year, text: $0.text, mood: $0.moodRaw, createdAt: $0.createdAt) }
+        guard !dtos.isEmpty else { return nil }
+        let enc = JSONEncoder()
+        enc.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+        enc.dateEncodingStrategy = .iso8601
+        guard let data = try? enc.encode(dtos) else { return nil }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("ilgigom_backup.json")
+        try? data.write(to: url)
+        return url
+    }
+
+    private func settingsGroup<C: View>(@ViewBuilder _ content: () -> C) -> some View {
+        VStack(spacing: 0) { content() }
+            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.dgCard))
+            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.dgLine, lineWidth: 1))
+    }
+    private var divider: some View { Rectangle().fill(Color.dgLine).frame(height: 1).padding(.leading, 50) }
+
+    private func toggleRow(icon: String, title: String, isOn: Binding<Bool>) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon).font(.system(size: 16)).foregroundStyle(Color.dgAccent).frame(width: 22)
+            Text(title).font(.system(size: 15, weight: .medium)).foregroundStyle(Color.dgInk)
+            Spacer()
+            Toggle("", isOn: isOn).labelsHidden().tint(Color.dgAccent)
+        }
+        .padding(.horizontal, 16).padding(.vertical, 14)
+    }
+    private func linkRow(icon: String, title: String, trailing: String? = nil) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon).font(.system(size: 16)).foregroundStyle(Color.dgAccent).frame(width: 22)
+            Text(title).font(.system(size: 15, weight: .medium)).foregroundStyle(Color.dgInk)
+            Spacer()
+            if let trailing { Text(trailing).font(.system(size: 13)).foregroundStyle(Color.dgSub) }
+            else { Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.dgFaint) }
+        }
+        .padding(.horizontal, 16).padding(.vertical, 14)
+    }
+}
+
+// 공유 시트 (iCloud Drive 저장 가능)
+struct ActivityView: UIViewControllerRepresentable {
+    let items: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
+}
