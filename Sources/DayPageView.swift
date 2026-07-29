@@ -24,7 +24,13 @@ struct DayPageView: View {
     private func entry(_ year: Int) -> Entry? { entries.first { $0.year == year } }
     private var filledCount: Int { entries.filter { !$0.isEmpty }.count }
     private var currentYear: Int { DiaryDate.year(Date()) }
-    private var pastYears: [Int] { DiaryConfig.yearsDescending.filter { $0 < currentYear } }
+    /// 과거 연도 — 기본 최근 10년. 캘린더에서 그 이전 연도로 진입하면 그 해까지 확장.
+    private var pastYears: [Int] {
+        let base = currentYear - DiaryConfig.span + 1
+        let earliest = min(base, focusYear ?? base)
+        guard earliest <= currentYear - 1 else { return [] }
+        return stride(from: currentYear - 1, through: earliest, by: -1).map { $0 }
+    }
 
     var body: some View {
         Group {
@@ -83,14 +89,17 @@ struct DayPageView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: 스택 상태 (애플 월렛식 · 드래그로 고무줄 확장)
-    @State private var stackExpand: CGFloat = 0   // 0 접힘 ~ 1 펼침
+    // MARK: 스택 상태 (애플 월렛식 · 당기면 고무줄로 늘어나고 놓으면 원복)
+    @GestureState private var pull: CGFloat = 0
     private var stackView: some View {
         let collapsedPeek: CGFloat = 60
-        let expandedPeek: CGFloat = 132
-        let peekH = collapsedPeek + (expandedPeek - collapsedPeek) * stackExpand
-        let cardH: CGFloat = 140
-        let lines = stackExpand > 0.35 ? 5 : 1
+        let expandedPeek: CGFloat = 104
+        // 당긴 거리 → 고무줄 저항(easeOut) 0~1
+        let raw = min(abs(pull) / 200, 1)
+        let expand = 1 - pow(1 - raw, 2)
+        let peekH = collapsedPeek + (expandedPeek - collapsedPeek) * expand
+        let cardH: CGFloat = 116
+        let lines = expand > 0.35 ? 3 : 1
         return ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
                 header(showCollapse: false)
@@ -99,7 +108,7 @@ struct DayPageView: View {
                 HStack {
                     Text("지난 10년").font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.dgSub)
                     Spacer()
-                    Text(stackExpand > 0.35 ? "탭하면 그 해로" : "위아래로 당겨보세요")
+                    Text("위아래로 당겨보세요")
                         .font(.system(size: 12)).foregroundStyle(Color.dgFaint)
                 }
                 .padding(.horizontal, 20)
@@ -119,17 +128,11 @@ struct DayPageView: View {
                 .frame(height: CGFloat(max(pastYears.count - 1, 0)) * peekH + cardH, alignment: .top)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 20)
+                .animation(.spring(response: 0.4, dampingFraction: 0.72), value: pull)
                 .gesture(
-                    DragGesture(minimumDistance: 8)
-                        .onChanged { v in
-                            let delta = v.translation.height / 260
-                            stackExpand = min(max(stackExpand + delta * 0.12, 0), 1)
-                        }
-                        .onEnded { v in
-                            withAnimation(.snappy(duration: 0.35)) {
-                                stackExpand = (v.translation.height > 0 || stackExpand > 0.5) ? 1 : 0
-                            }
-                        }
+                    DragGesture(minimumDistance: 6)
+                        // 당기는 동안만 pull 값 유지 → 손 놓으면 자동으로 0 복원(고무줄)
+                        .updating($pull) { v, state, _ in state = v.translation.height }
                 )
             }
             .padding(.bottom, 30)

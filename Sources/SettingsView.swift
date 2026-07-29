@@ -131,13 +131,12 @@ struct SettingsView: View {
 
     private var summaryCard: some View {
         VStack(spacing: 6) {
-            Text("🐻").font(.system(size: 40))
             Text("지금까지 \(filledCount)일 기록했어요")
                 .font(.system(size: 16, weight: .bold)).foregroundStyle(Color.dgInk)
-            Text("\(String(DiaryConfig.years.first ?? 0)) – \(String(DiaryConfig.years.last ?? 0)) · 10년의 오늘")
+            Text("하루 한 줄, 10년의 오늘")
                 .font(.system(size: 12)).foregroundStyle(Color.dgSub)
         }
-        .frame(maxWidth: .infinity).padding(.vertical, 24)
+        .frame(maxWidth: .infinity).padding(.vertical, 22)
         .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Color.dgCard))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Color.dgLine, lineWidth: 1))
     }

@@ -65,7 +65,7 @@ struct CalendarTabView: View {
     private var yearStrip: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(DiaryConfig.yearsDescending, id: \.self) { y in
+                ForEach(DiaryConfig.calendarYears, id: \.self) { y in
                     Button { withAnimation(.snappy) { year = y } } label: {
                         Text(String(y))
                             .font(.system(size: 14, weight: .bold))

@@ -33,10 +33,13 @@ extension Color {
 }
 
 enum DiaryConfig {
-    static let span = 10   // 올해 포함 최근 10년 (10년 전 오늘 ~ 오늘)
+    static let span = 10          // 메인화면 스택: 올해 포함 최근 10년
+    static let calendarSpan = 30  // 캘린더/기록 가능 범위: 최근 30년
     static var currentYear: Int { Calendar.current.component(.year, from: Date()) }
     /// 오름차순 [올해-9 ... 올해]
     static var years: [Int] { Array((currentYear - span + 1) ... currentYear) }
     /// 표시용 내림차순 [올해 ... 올해-9] (오늘이 맨 위)
     static var yearsDescending: [Int] { years.reversed() }
+    /// 캘린더 연도 선택 (최근 30년, 내림차순)
+    static var calendarYears: [Int] { Array((currentYear - calendarSpan + 1) ... currentYear).reversed() }
 }
