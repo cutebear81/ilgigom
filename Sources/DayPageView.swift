@@ -83,10 +83,14 @@ struct DayPageView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: 스택 상태 (peek)
+    // MARK: 스택 상태 (애플 월렛식 · 드래그로 고무줄 확장)
+    @State private var stackExpand: CGFloat = 0   // 0 접힘 ~ 1 펼침
     private var stackView: some View {
-        let peekH: CGFloat = 62
-        let cardH: CGFloat = 92
+        let collapsedPeek: CGFloat = 60
+        let expandedPeek: CGFloat = 132
+        let peekH = collapsedPeek + (expandedPeek - collapsedPeek) * stackExpand
+        let cardH: CGFloat = 140
+        let lines = stackExpand > 0.35 ? 5 : 1
         return ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
                 header(showCollapse: false)
@@ -95,14 +99,15 @@ struct DayPageView: View {
                 HStack {
                     Text("지난 10년").font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.dgSub)
                     Spacer()
-                    Text("탭하면 펼쳐집니다").font(.system(size: 12)).foregroundStyle(Color.dgFaint)
+                    Text(stackExpand > 0.35 ? "탭하면 그 해로" : "위아래로 당겨보세요")
+                        .font(.system(size: 12)).foregroundStyle(Color.dgFaint)
                 }
                 .padding(.horizontal, 20)
 
-                // 애플 월렛식 peek 스택 (가로폭 동일, 과거 카드가 앞에 얹혀 라벨이 보임)
+                // 과거 카드가 앞에 얹혀 라벨이 보이는 스택. 드래그하면 각 칸이 고무줄처럼 늘어남.
                 ZStack(alignment: .top) {
                     ForEach(Array(pastYears.enumerated()), id: \.element) { idx, year in
-                        StackCard(year: year, yearsAgo: currentYear - year, entry: entry(year))
+                        StackCard(year: year, yearsAgo: currentYear - year, entry: entry(year), lines: lines)
                             .frame(height: cardH)
                             .offset(y: CGFloat(idx) * peekH)
                             .onTapGesture {
@@ -114,6 +119,18 @@ struct DayPageView: View {
                 .frame(height: CGFloat(max(pastYears.count - 1, 0)) * peekH + cardH, alignment: .top)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 20)
+                .gesture(
+                    DragGesture(minimumDistance: 8)
+                        .onChanged { v in
+                            let delta = v.translation.height / 260
+                            stackExpand = min(max(stackExpand + delta * 0.12, 0), 1)
+                        }
+                        .onEnded { v in
+                            withAnimation(.snappy(duration: 0.35)) {
+                                stackExpand = (v.translation.height > 0 || stackExpand > 0.5) ? 1 : 0
+                            }
+                        }
+                )
             }
             .padding(.bottom, 30)
         }
@@ -198,7 +215,12 @@ private struct EditTarget: Identifiable {
     var id: String { "\(dateKey)-\(year)" }
 }
 
-/// 스택 카드 — 상단 peek 영역에 연도 라벨 + 한 줄 요약
+/// 카드 상단 양쪽 모서리만 둥근 모양 (애플 월렛 카드처럼)
+let folderTopShape = UnevenRoundedRectangle(
+    topLeadingRadius: 18, bottomLeadingRadius: 0,
+    bottomTrailingRadius: 0, topTrailingRadius: 18, style: .continuous)
+
+/// 스택 카드 — 상단 peek 영역에 연도 라벨 + 요약(드래그 시 여러 줄)
 struct StackCard: View {
     let year: Int
     let yearsAgo: Int
@@ -211,6 +233,8 @@ struct StackCard: View {
         return "이 날 사진 기록이 있어요"
     }
 
+    let lines: Int
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("\(String(year)) · \(yearsAgo)년 전")
@@ -219,16 +243,14 @@ struct StackCard: View {
             Text(summary)
                 .font(.system(size: 15))
                 .foregroundStyle(hasContent ? Color.dgOnDark : Color.dgOnDarkSub)
-                .lineLimit(1)
+                .lineLimit(lines).multilineTextAlignment(.leading)
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 18).padding(.top, 14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.dgCardDark)
-        )
-        .shadow(color: .black.opacity(0.12), radius: 6, y: -2)
+        .background(folderTopShape.fill(Color.dgCardDark))
+        .overlay(folderTopShape.strokeBorder(Color.dgOnDark.opacity(0.9), lineWidth: 0.5))
+        .shadow(color: .black.opacity(0.18), radius: 6, y: -2)
     }
 }
 
