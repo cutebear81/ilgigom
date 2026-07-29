@@ -13,7 +13,7 @@
           "locale" : "ko_KR"
         }
       ],
-      "productID" : "com.tonyne.diarygom.tip.icecream",
+      "productID" : "com.tonyne.ilgigom.tip.icecream",
       "referenceName" : "아이스크림 후원",
       "type" : "Consumable"
     },
@@ -28,7 +28,7 @@
           "locale" : "ko_KR"
         }
       ],
-      "productID" : "com.tonyne.diarygom.tip.coffee",
+      "productID" : "com.tonyne.ilgigom.tip.coffee",
       "referenceName" : "커피 후원",
       "type" : "Consumable"
     },
@@ -43,7 +43,7 @@
           "locale" : "ko_KR"
         }
       ],
-      "productID" : "com.tonyne.diarygom.tip.meal",
+      "productID" : "com.tonyne.ilgigom.tip.meal",
       "referenceName" : "한끼 후원",
       "type" : "Consumable"
     }
