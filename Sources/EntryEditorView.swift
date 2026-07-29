@@ -14,7 +14,8 @@ struct EntryEditorView: View {
     @State private var text = ""
     @State private var mood: Mood?
     @State private var photo: Data?
-    @State private var tags = ""
+    @State private var tags: [String] = []
+    @State private var tagField = ""
     @State private var weatherNote: String?
     @State private var pickerItem: PhotosPickerItem?
     @State private var loaded = false
@@ -105,14 +106,21 @@ struct EntryEditorView: View {
                             .focused($focused)
                     }
 
-                    // 해시태그 입력창 (맨 밑)
-                    VStack(alignment: .leading, spacing: 8) {
+                    // 해시태그 입력창 (맨 밑) — 엔터로 칩 추가, 칩 우상단 x 삭제
+                    VStack(alignment: .leading, spacing: 10) {
                         Text("해시태그").font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.dgSub)
+                        if !tags.isEmpty {
+                            FlowLayout(spacing: 10) {
+                                ForEach(tags, id: \.self) { tag in tagChip(tag) }
+                            }
+                        }
                         HStack(spacing: 8) {
                             Image(systemName: "number").font(.system(size: 14)).foregroundStyle(Color.dgAccent)
-                            TextField("여행 가족 주말 (띄어쓰기로 구분)", text: $tags)
+                            TextField("태그 입력 후 엔터", text: $tagField)
                                 .font(.system(size: 15)).foregroundStyle(Color.dgInk)
                                 .autocorrectionDisabled()
+                                .submitLabel(.done)
+                                .onSubmit(addTag)
                         }
                         .padding(.horizontal, 14).padding(.vertical, 12)
                         .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.dgCard))
@@ -171,12 +179,39 @@ struct EntryEditorView: View {
         .buttonStyle(.plain)
     }
 
+    // 해시태그 칩
+    private func tagChip(_ tag: String) -> some View {
+        Text(tag)
+            .font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.dgAccent)
+            .padding(.horizontal, 12).padding(.vertical, 7)
+            .background(Capsule().fill(Color.dgAccent.opacity(0.12)))
+            .overlay(alignment: .topTrailing) {
+                Button {
+                    tags.removeAll { $0 == tag }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 15))
+                        .foregroundStyle(.white, Color.dgSub)
+                }
+                .offset(x: 6, y: -6)
+            }
+            .padding(.top, 6).padding(.trailing, 6)
+    }
+
+    private func addTag() {
+        var t = tagField.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !t.isEmpty else { return }
+        if !t.hasPrefix("#") { t = "#" + t }
+        if !tags.contains(t) { tags.append(t) }
+        tagField = ""
+    }
+
     private func loadOnce() {
         guard !loaded else { return }
         loaded = true
         if let e = existing {
             text = e.text; mood = e.mood; photo = e.photo
-            tags = e.tagsRaw; weatherNote = e.weatherNote
+            tags = e.hashtags; weatherNote = e.weatherNote
         }
         if (existing?.isEmpty ?? true) {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { focused = true }
@@ -184,15 +219,42 @@ struct EntryEditorView: View {
     }
 
     private func save() {
+        // 입력 중이던 태그도 저장에 반영
+        addTag()
+        let tagsJoined = tags.joined(separator: " ")
         if let e = existing {
             e.text = text; e.mood = mood; e.photo = photo
-            e.tagsRaw = tags; e.weatherNote = weatherNote; e.updatedAt = Date()
+            e.tagsRaw = tagsJoined; e.weatherNote = weatherNote; e.updatedAt = Date()
         } else {
             let e = Entry(date: dateKey, year: year, text: text, mood: mood, photo: photo,
-                          tagsRaw: tags, weatherNote: weatherNote)
+                          tagsRaw: tagsJoined, weatherNote: weatherNote)
             context.insert(e)
         }
         try? context.save()
         dismiss()
+    }
+}
+
+/// 칩을 줄바꿈 배치하는 간단 Flow 레이아웃
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxW = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, rowH: CGFloat = 0
+        for s in subviews {
+            let sz = s.sizeThatFits(.unspecified)
+            if x + sz.width > maxW { x = 0; y += rowH + spacing; rowH = 0 }
+            x += sz.width + spacing; rowH = max(rowH, sz.height)
+        }
+        return CGSize(width: proposal.width ?? x, height: y + rowH)
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX, y = bounds.minY, rowH: CGFloat = 0
+        for s in subviews {
+            let sz = s.sizeThatFits(.unspecified)
+            if x + sz.width > bounds.maxX { x = bounds.minX; y += rowH + spacing; rowH = 0 }
+            s.place(at: CGPoint(x: x, y: y), proposal: .unspecified)
+            x += sz.width + spacing; rowH = max(rowH, sz.height)
+        }
     }
 }

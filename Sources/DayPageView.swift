@@ -64,23 +64,35 @@ struct DayPageView: View {
         .padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 6)
     }
 
-    // MARK: 오늘 카드 (다크)
-    private var todayCard: some View {
+    // MARK: 오늘 카드 (다크). showLabel=false면 박스 안 연도·오늘 라벨 없이 해시태그 표시(펼침용)
+    private func todayCard(showLabel: Bool = true) -> some View {
         let e = entry(currentYear)
+        let emptyText = e?.text.isEmpty ?? true
         return Button { editing = EditTarget(dateKey: dateKey, year: currentYear) } label: {
             VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text("\(String(currentYear)) · 오늘")
-                        .font(.system(size: 14, weight: .bold)).foregroundStyle(Color.dgAccent)
-                    Spacer()
-                    if let m = e?.mood { Text(m.emoji).font(.system(size: 18)) }
+                if showLabel {
+                    HStack {
+                        Text("\(String(currentYear)) · 오늘")
+                            .font(.system(size: 14, weight: .bold)).foregroundStyle(Color.dgAccent)
+                        Spacer()
+                        if let m = e?.mood { Text(m.emoji).font(.system(size: 18)) }
+                    }
+                } else if let m = e?.mood {
+                    HStack { Spacer(); Text(m.emoji).font(.system(size: 18)) }
                 }
-                Text((e?.text.isEmpty ?? true) ? "오늘 한 줄…" : e!.text)
+                Text(emptyText ? "오늘 한 줄…" : e!.text)
                     .font(.system(size: 16))
-                    .foregroundStyle((e?.text.isEmpty ?? true) ? Color.dgOnDarkSub : Color.dgOnDark)
-                    .lineLimit(2).multilineTextAlignment(.leading)
+                    .foregroundStyle(emptyText ? Color.dgOnDarkSub : Color.dgOnDark)
+                    .lineLimit(showLabel ? 2 : nil).multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Rectangle().fill(Color.white.opacity(0.12)).frame(height: 1)
+                if !showLabel, let e, !e.hashtags.isEmpty {
+                    Text(e.hashtags.joined(separator: " "))
+                        .font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.dgAccent)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                if showLabel {
+                    Rectangle().fill(Color.white.opacity(0.12)).frame(height: 1)
+                }
             }
             .padding(18)
             .frame(maxWidth: .infinity)
@@ -103,7 +115,7 @@ struct DayPageView: View {
         return ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
                 header(showCollapse: false)
-                todayCard.padding(.horizontal, 20)
+                todayCard(showLabel: true).padding(.horizontal, 20)
 
                 HStack {
                     Text("지난 10년").font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.dgSub)
@@ -152,7 +164,7 @@ struct DayPageView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             Text("\(String(currentYear)) · 오늘")
                                 .font(.system(size: 14, weight: .bold)).foregroundStyle(Color.dgAccent)
-                            todayCard
+                            todayCard(showLabel: false)
                         }
                     }
                     .id(currentYear)
@@ -282,6 +294,12 @@ struct FullYearCard: View {
                             Image(uiImage: ui).resizable().scaledToFill()
                                 .frame(maxWidth: .infinity).frame(height: 160)
                                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
+                        if !e.hashtags.isEmpty {
+                            Text(e.hashtags.joined(separator: " "))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Color.dgAccent)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         if let m = e.mood {
                             Text(m.label + (e.photo != nil ? " · 사진 1장" : ""))
