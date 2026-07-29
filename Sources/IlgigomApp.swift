@@ -54,7 +54,7 @@ struct DiaryHeader: View {
     var trailing: AnyView? = nil
     var body: some View {
         HStack {
-            Image("AppLogo").resizable().scaledToFit().frame(height: 44)
+            Image("AppLogo").resizable().scaledToFit().frame(height: 66)
             Spacer()
             if let trailing { trailing }
         }
