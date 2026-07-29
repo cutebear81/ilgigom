@@ -67,7 +67,7 @@
 
 | 제품 ID | 참조 이름 | 표시 이름 | 설명 | 가격 (USD) | 애플 티어 |
 |---|---|---|---|---|---|
-| com.tonyne.ilgigom.tip.icecream | 아이스크림 후원 | 아이스크림 한 개 | 개발자에게 아이스크림을 선물합니다 | $0.99 | Tier 1 |
+| com.tonyne.ilgigom.tip.icecream2 | 아이스크림 후원 | 아이스크림 한 개 | 개발자에게 아이스크림을 선물합니다 | $0.99 | Tier 1 |
 | com.tonyne.ilgigom.tip.coffee | 커피 후원 | 커피 한 잔 | 개발자에게 커피를 선물합니다 | $2.99 | Tier 3 |
 | com.tonyne.ilgigom.tip.meal | 한끼 후원 | 든든한 한 끼 | 개발자에게 한 끼를 선물합니다 | $6.99 | Tier 7 |
 

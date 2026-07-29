@@ -8,14 +8,14 @@ final class TipStore: ObservableObject {
 
     /// 소모성 IAP 제품 ID (아이스크림 / 커피 / 한끼)
     static let productIDs = [
-        "com.tonyne.ilgigom.tip.icecream",
+        "com.tonyne.ilgigom.tip.icecream2",
         "com.tonyne.ilgigom.tip.coffee",
         "com.tonyne.ilgigom.tip.meal",
     ]
 
     static func emoji(for id: String) -> String {
         switch id {
-        case "com.tonyne.ilgigom.tip.icecream": return "🍦"
+        case "com.tonyne.ilgigom.tip.icecream2": return "🍦"
         case "com.tonyne.ilgigom.tip.coffee":   return "☕️"
         case "com.tonyne.ilgigom.tip.meal":     return "🍚"
         default:                                return "💝"
