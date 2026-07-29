@@ -11,10 +11,14 @@ struct IlgigomApp: App {
 
 struct RootView: View {
     @State private var showSplash = true
+    @AppStorage("onboardingDone") private var onboardingDone = false
     var body: some View {
         ZStack {
             if showSplash {
                 SplashView().transition(.opacity)
+            } else if !onboardingDone {
+                OnboardingView { withAnimation(.easeInOut) { onboardingDone = true } }
+                    .transition(.opacity)
             } else {
                 RootTabView().transition(.opacity)
             }
@@ -59,6 +63,6 @@ struct DiaryHeader: View {
             if let trailing { trailing }
         }
         .frame(height: 72)
-        .padding(.horizontal, 20)
+        .padding(.leading, 8).padding(.trailing, 20)
     }
 }
