@@ -47,12 +47,12 @@
 하루 한 줄, 10년의 오늘. 지금 시작해 보세요.
 ```
 
-## 지원 URL / 마케팅 URL
+## 지원 URL / 개인정보 URL (실제 링크)
 ```
-지원 URL: https://github.com/(계정)/ilgigom/blob/main/SUPPORT.md
-개인정보처리방침 URL: https://github.com/(계정)/ilgigom/blob/main/PRIVACY.md
+지원 URL: https://github.com/cutebear81/ilgigom/blob/main/SUPPORT.md
+개인정보처리방침 URL: https://github.com/cutebear81/ilgigom/blob/main/PRIVACY.md
 ```
-(깃허브 저장소 push 후 실제 링크로 교체)
+(마케팅 URL은 선택 — 비워두거나 https://www.tonyne.kr)
 
 ## 심사 메모 (App Review Notes)
 ```
