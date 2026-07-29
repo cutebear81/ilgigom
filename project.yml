@@ -13,6 +13,9 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+    scheme:
+      testTargets: []
+      storeKitConfiguration: Ilgigom.storekit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tonyne.ilgigom

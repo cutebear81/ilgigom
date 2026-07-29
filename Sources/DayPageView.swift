@@ -231,9 +231,9 @@ struct StackCard: View {
 
     private var hasContent: Bool { !(entry?.isEmpty ?? true) }
     private var summary: String {
-        guard let e = entry, !e.isEmpty else { return "이 해의 오늘은 아직 비어 있어요" }
+        guard let e = entry, !e.isEmpty else { return "" }   // 빈 날은 아무 글씨 없이 빈칸
         if !e.text.isEmpty { return e.text }
-        return "이 날 사진 기록이 있어요"
+        return "사진 기록"
     }
 
     let lines: Int
