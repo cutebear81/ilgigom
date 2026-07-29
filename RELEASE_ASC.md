@@ -4,7 +4,7 @@
 
 ## 기본 정보
 - 앱 이름: **일기곰**
-- 번들 ID: `com.tonyne.ilgigom`
+- 번들 ID: `com.tonyne.diarygom`
 - SKU: `ilgigom001`
 - 기본 언어: 한국어
 - 카테고리: 기본 **라이프스타일** / 보조 **건강 및 피트니스**
@@ -67,9 +67,9 @@
 
 | 제품 ID | 참조 이름 | 표시 이름 | 설명 | 가격 (USD) | 애플 티어 |
 |---|---|---|---|---|---|
-| com.tonyne.ilgigom.tip.icecream | 아이스크림 후원 | 아이스크림 한 개 | 개발자에게 아이스크림을 선물합니다 | $0.99 | Tier 1 |
-| com.tonyne.ilgigom.tip.coffee | 커피 후원 | 커피 한 잔 | 개발자에게 커피를 선물합니다 | $2.99 | Tier 3 |
-| com.tonyne.ilgigom.tip.meal | 한끼 후원 | 든든한 한 끼 | 개발자에게 한 끼를 선물합니다 | $6.99 | Tier 7 |
+| com.tonyne.diarygom.tip.icecream | 아이스크림 후원 | 아이스크림 한 개 | 개발자에게 아이스크림을 선물합니다 | $0.99 | Tier 1 |
+| com.tonyne.diarygom.tip.coffee | 커피 후원 | 커피 한 잔 | 개발자에게 커피를 선물합니다 | $2.99 | Tier 3 |
+| com.tonyne.diarygom.tip.meal | 한끼 후원 | 든든한 한 끼 | 개발자에게 한 끼를 선물합니다 | $6.99 | Tier 7 |
 
 - 한국 스토어 표시가격은 위 애플 티어에 대응하는 원화(대략 ₩1,500 / ₩4,400 / ₩9,900, 티어 환율에 따라 자동)로 노출됩니다.
 - 코드의 제품 ID와 App Store Connect의 제품 ID가 정확히 일치해야 결제가 동작합니다.

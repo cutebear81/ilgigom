@@ -18,7 +18,7 @@ targets:
       storeKitConfiguration: Ilgigom.storekit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.tonyne.ilgigom
+        PRODUCT_BUNDLE_IDENTIFIER: com.tonyne.diarygom
         PRODUCT_NAME: Ilgigom
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
