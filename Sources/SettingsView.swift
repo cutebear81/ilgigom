@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import UIKit
+import UniformTypeIdentifiers
 
 // 내보내기용 DTO
 private struct EntryDTO: Codable {
@@ -10,6 +11,7 @@ private struct EntryDTO: Codable {
 struct SettingsView: View {
     @Query private var allEntries: [Entry]
     @Environment(\.openURL) private var openURL
+    @Environment(\.modelContext) private var context
 
     @AppStorage("reminderEnabled") private var reminderEnabled = false
     @AppStorage("reminderHour") private var reminderHour = 21
@@ -18,6 +20,8 @@ struct SettingsView: View {
 
     @State private var showExport = false
     @State private var showTipJar = false
+    @State private var showImport = false
+    @State private var importResult: String?
 
     private var filledCount: Int { allEntries.filter { !$0.isEmpty }.count }
 
@@ -70,10 +74,14 @@ struct SettingsView: View {
                             toggleRow(icon: "lock", title: "앱 잠금", isOn: $lockEnabled)
                         }
 
-                        // 백업 (iCloud)
+                        // 백업 · 가져오기
                         settingsGroup {
                             Button { showExport = true } label: {
                                 linkRow(icon: "icloud.and.arrow.up", title: "iCloud로 내보내기 · 백업")
+                            }
+                            divider
+                            Button { showImport = true } label: {
+                                linkRow(icon: "square.and.arrow.down", title: "파일에서 가져오기 (CSV · JSON)")
                             }
                         }
 
@@ -107,6 +115,17 @@ struct SettingsView: View {
                 }
             }
             .sheet(isPresented: $showTipJar) { TipJarView() }
+            .fileImporter(isPresented: $showImport,
+                          allowedContentTypes: [.commaSeparatedText, .json, .text, .plainText],
+                          allowsMultipleSelection: false) { result in
+                handleImport(result)
+            }
+            .alert("가져오기", isPresented: Binding(get: { importResult != nil },
+                                                 set: { if !$0 { importResult = nil } })) {
+                Button("확인", role: .cancel) { importResult = nil }
+            } message: {
+                Text(importResult ?? "")
+            }
         }
     }
 
@@ -121,6 +140,16 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity).padding(.vertical, 24)
         .background(RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Color.dgCard))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Color.dgLine, lineWidth: 1))
+    }
+
+    private func handleImport(_ result: Result<[URL], Error>) {
+        guard case .success(let urls) = result, let url = urls.first else { return }
+        let needStop = url.startAccessingSecurityScopedResource()
+        defer { if needStop { url.stopAccessingSecurityScopedResource() } }
+        let rows = DiaryImporter.parse(url: url)
+        guard !rows.isEmpty else { importResult = "가져올 수 있는 일기를 찾지 못했어요. 파일 형식을 확인해주세요."; return }
+        let n = DiaryImporter.importRows(rows, into: context, existing: allEntries)
+        importResult = "\(n)개의 일기를 가져왔어요."
     }
 
     private func exportFileURL() -> URL? {

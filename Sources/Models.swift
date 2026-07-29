@@ -36,6 +36,12 @@ enum Mood: String, CaseIterable, Codable, Identifiable {
         case .angry: return Color(hex: "E4572E")
         }
     }
+    /// 가져오기용 — rawValue("happy") 또는 라벨("좋아요") 또는 이모지로 매칭
+    static func from(_ s: String) -> Mood? {
+        let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !t.isEmpty else { return nil }
+        return allCases.first { $0.rawValue == t || $0.label == t || $0.emoji == t }
+    }
 }
 
 // 일기 엔트리 — 고유 키 (date, year) 1쌍 = 1엔트리
