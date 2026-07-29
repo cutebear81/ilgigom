@@ -26,6 +26,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: 일기곰
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "그날의 위치와 날씨를 일기에 함께 기록하기 위해 사용됩니다."
+        INFOPLIST_KEY_NSFaceIDUsageDescription: "앱 잠금 해제에 Face ID를 사용합니다."
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

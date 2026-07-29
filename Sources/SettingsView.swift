@@ -17,6 +17,10 @@ struct SettingsView: View {
     @AppStorage("reminderHour") private var reminderHour = 21
     @AppStorage("reminderMinute") private var reminderMinute = 0
     @AppStorage("lockEnabled") private var lockEnabled = false
+    @AppStorage("lockMethod") private var lockMethod = "bio"
+    @AppStorage("lockPIN") private var lockPIN = ""
+    @State private var showLockMethod = false
+    @State private var showPinSetup = false
 
     @State private var showExport = false
     @State private var showTipJar = false
@@ -71,7 +75,20 @@ struct SettingsView: View {
                                 .padding(.horizontal, 16).padding(.vertical, 10)
                             }
                             divider
-                            toggleRow(icon: "lock", title: "앱 잠금", isOn: $lockEnabled)
+                            toggleRow(icon: "lock", title: "앱 잠금", isOn: Binding(
+                                get: { lockEnabled },
+                                set: { on in
+                                    if on { showLockMethod = true }
+                                    else { lockEnabled = false; lockPIN = ""; lockMethod = "bio" }
+                                }
+                            ))
+                            if lockEnabled {
+                                divider
+                                Button { showLockMethod = true } label: {
+                                    linkRow(icon: "key", title: "잠금 방식",
+                                            trailing: lockMethod == "pin" ? "비밀번호" : "Face ID")
+                                }
+                            }
                         }
 
                         // 백업 · 가져오기
@@ -115,6 +132,16 @@ struct SettingsView: View {
                 }
             }
             .sheet(isPresented: $showTipJar) { TipJarView() }
+            .confirmationDialog("잠금 방식 선택", isPresented: $showLockMethod, titleVisibility: .visible) {
+                Button("Face ID / Touch ID") { lockMethod = "bio"; lockEnabled = true }
+                Button("비밀번호(PIN)") { showPinSetup = true }
+                Button("취소", role: .cancel) {}
+            }
+            .sheet(isPresented: $showPinSetup) {
+                PinSetupView { newPin in
+                    lockPIN = newPin; lockMethod = "pin"; lockEnabled = true
+                }
+            }
             .fileImporter(isPresented: $showImport,
                           allowedContentTypes: [.commaSeparatedText, .json, .text, .plainText],
                           allowsMultipleSelection: false) { result in

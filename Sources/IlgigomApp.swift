@@ -12,6 +12,12 @@ struct IlgigomApp: App {
 struct RootView: View {
     @State private var showSplash = true
     @AppStorage("onboardingDone") private var onboardingDone = false
+    @AppStorage("lockEnabled") private var lockEnabled = false
+    @AppStorage("lockMethod") private var lockMethod = "bio"
+    @AppStorage("lockPIN") private var lockPIN = ""
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var locked = false
+
     var body: some View {
         ZStack {
             if showSplash {
@@ -22,10 +28,22 @@ struct RootView: View {
             } else {
                 RootTabView().transition(.opacity)
             }
+
+            if locked && !showSplash {
+                AppLockView(method: lockMethod, pin: lockPIN) {
+                    withAnimation(.easeInOut) { locked = false }
+                }
+                .transition(.opacity)
+                .zIndex(10)
+            }
         }
         .task {
+            if lockEnabled { locked = true }
             try? await Task.sleep(for: .seconds(1.4))
             withAnimation(.easeInOut(duration: 0.4)) { showSplash = false }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background && lockEnabled { locked = true }
         }
     }
 }
