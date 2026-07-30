@@ -30,6 +30,20 @@ struct EntryEditorView: View {
 
     private var existing: Entry? { entries.first }
 
+    /// dateKey("MM-DD") + year → 실제 Date
+    private var entryDate: Date? {
+        let parts = dateKey.split(separator: "-")
+        guard parts.count == 2, let m = Int(parts[0]), let d = Int(parts[1]) else { return nil }
+        var c = DateComponents(); c.year = year; c.month = m; c.day = d
+        return Calendar.current.date(from: c)
+    }
+    /// 미래 날짜(내일 이후)면 날씨 조회 불가
+    private var isFutureDate: Bool {
+        guard let entryDate else { return false }
+        let cal = Calendar.current
+        return cal.startOfDay(for: entryDate) > cal.startOfDay(for: Date())
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -154,10 +168,14 @@ struct EntryEditorView: View {
     // 위치·날씨·시간 기록 줄
     private var weatherRow: some View {
         Button {
-            weather.fetch { note in if let note { weatherNote = note } }
+            weather.fetch(for: entryDate) { note in if let note { weatherNote = note } }
         } label: {
             HStack(spacing: 8) {
-                if weather.loading {
+                if isFutureDate && weatherNote == nil {
+                    Image(systemName: "location.slash").font(.system(size: 13)).foregroundStyle(Color.dgFaint)
+                    Text("미래 날짜는 날씨를 기록할 수 없어요").font(.system(size: 14)).foregroundStyle(Color.dgFaint)
+                    Spacer(minLength: 0)
+                } else if weather.loading {
                     ProgressView().controlSize(.small)
                     Text("위치·날씨 확인 중…").font(.system(size: 14)).foregroundStyle(Color.dgSub)
                 } else if let note = weatherNote {
@@ -167,7 +185,7 @@ struct EntryEditorView: View {
                     Image(systemName: "arrow.clockwise").font(.system(size: 12)).foregroundStyle(Color.dgSub)
                 } else {
                     Image(systemName: "location").font(.system(size: 13)).foregroundStyle(Color.dgAccent)
-                    Text("위치·날씨·시간 기록").font(.system(size: 14, weight: .medium)).foregroundStyle(Color.dgInk)
+                    Text("위치·날씨 기록").font(.system(size: 14, weight: .medium)).foregroundStyle(Color.dgInk)
                     Spacer(minLength: 0)
                 }
             }
@@ -177,6 +195,7 @@ struct EntryEditorView: View {
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.dgLine, lineWidth: 1))
         }
         .buttonStyle(.plain)
+        .disabled(isFutureDate && weatherNote == nil)
     }
 
     // 해시태그 칩
