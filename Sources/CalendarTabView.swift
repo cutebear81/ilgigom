@@ -97,23 +97,30 @@ struct CalendarTabView: View {
 
     private var grid: some View {
         let cols = Array(repeating: GridItem(.flexible(), spacing: 6), count: 7)
+        // 앞 빈칸(nil) + 1일~말일을 한 배열로 만들어 enumerated 인덱스를 고유 id로 사용.
+        // (빈칸/날짜를 별도 ForEach로 두면 id가 겹쳐 첫 주가 사라지는 버그가 생김)
+        let cells: [Int?] = Array(repeating: nil, count: max(0, firstWeekday - 1))
+            + (1 ... daysInMonth).map { Optional($0) }
         return LazyVGrid(columns: cols, spacing: 8) {
             ForEach(weekdays, id: \.self) { w in
                 Text(w).font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(w == "일" ? Color.dgAccent : Color.dgSub)
             }
-            ForEach(0 ..< (firstWeekday - 1), id: \.self) { _ in Color.clear.frame(height: 40) }
-            ForEach(1 ... daysInMonth, id: \.self) { day in
-                let filled = filledKeys.contains(key(day))
-                NavigationLink(value: DayRoute(dateKey: key(day), year: year)) {
-                    Text("\(day)")
-                        .font(.system(size: 14, weight: filled ? .bold : .regular))
-                        .foregroundStyle(filled ? .white : Color.dgInk)
-                        .frame(maxWidth: .infinity).frame(height: 40)
-                        .background(
-                            Circle().fill(filled ? Color.dgAccent : Color.dgCard)
-                                .frame(width: 36, height: 36)
-                        )
+            ForEach(Array(cells.enumerated()), id: \.offset) { _, dayOpt in
+                if let day = dayOpt {
+                    let filled = filledKeys.contains(key(day))
+                    NavigationLink(value: DayRoute(dateKey: key(day), year: year)) {
+                        Text("\(day)")
+                            .font(.system(size: 14, weight: filled ? .bold : .regular))
+                            .foregroundStyle(filled ? .white : Color.dgInk)
+                            .frame(maxWidth: .infinity).frame(height: 40)
+                            .background(
+                                Circle().fill(filled ? Color.dgAccent : Color.dgCard)
+                                    .frame(width: 36, height: 36)
+                            )
+                    }
+                } else {
+                    Color.clear.frame(height: 40)
                 }
             }
         }
