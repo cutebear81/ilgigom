@@ -3,37 +3,56 @@ import SwiftData
 
 // 기분 — 곰 표정 1:1 (성장/코멘트 없음, 순수 미러링)
 enum Mood: String, CaseIterable, Codable, Identifiable {
-    case happy, love, soso, tired, sad, angry
+    // 긍정 → 중립 → 부정 흐름
+    case happy, excited, love, grateful, proud, calm, soso, tired, anxious, sad, lonely, angry
     var id: String { rawValue }
 
     var emoji: String {
         switch self {
-        case .happy: return "😊"
-        case .love:  return "🥰"
-        case .soso:  return "😐"
-        case .tired: return "😴"
-        case .sad:   return "😢"
-        case .angry: return "😠"
+        case .happy:    return "😊"
+        case .excited:  return "🤩"
+        case .love:     return "🥰"
+        case .grateful: return "🥹"
+        case .proud:    return "😎"
+        case .calm:     return "😌"
+        case .soso:     return "😐"
+        case .tired:    return "😴"
+        case .anxious:  return "😰"
+        case .sad:      return "😢"
+        case .lonely:   return "🥺"
+        case .angry:    return "😠"
         }
     }
     var label: String {
         switch self {
-        case .happy: return "좋아요"
-        case .love:  return "설레요"
-        case .soso:  return "그냥"
-        case .tired: return "지쳐요"
-        case .sad:   return "슬퍼요"
-        case .angry: return "화나요"
+        case .happy:    return "좋아요"
+        case .excited:  return "신나요"
+        case .love:     return "설레요"
+        case .grateful: return "감사해요"
+        case .proud:    return "뿌듯해요"
+        case .calm:     return "평온해요"
+        case .soso:     return "그냥"
+        case .tired:    return "지쳐요"
+        case .anxious:  return "불안해요"
+        case .sad:      return "슬퍼요"
+        case .lonely:   return "외로워요"
+        case .angry:    return "화나요"
         }
     }
     var tint: Color {
         switch self {
-        case .happy: return Color(hex: "F2A93B")
-        case .love:  return Color(hex: "E86B8A")
-        case .soso:  return Color(hex: "9AA0A6")
-        case .tired: return Color(hex: "8E7CC3")
-        case .sad:   return Color(hex: "5B8DEF")
-        case .angry: return Color(hex: "E4572E")
+        case .happy:    return Color(hex: "F2A93B")
+        case .excited:  return Color(hex: "F2C94C")
+        case .love:     return Color(hex: "E86B8A")
+        case .grateful: return Color(hex: "F29CB8")
+        case .proud:    return Color(hex: "D4A017")
+        case .calm:     return Color(hex: "6FCF97")
+        case .soso:     return Color(hex: "9AA0A6")
+        case .tired:    return Color(hex: "8E7CC3")
+        case .anxious:  return Color(hex: "A99BC7")
+        case .sad:      return Color(hex: "5B8DEF")
+        case .lonely:   return Color(hex: "7E93A8")
+        case .angry:    return Color(hex: "E4572E")
         }
     }
     /// 가져오기용 — rawValue("happy") 또는 라벨("좋아요") 또는 이모지로 매칭

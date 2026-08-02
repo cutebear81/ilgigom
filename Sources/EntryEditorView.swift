@@ -19,6 +19,7 @@ struct EntryEditorView: View {
     @State private var weatherNote: String?
     @State private var pickerItem: PhotosPickerItem?
     @State private var loaded = false
+    @State private var showDeleteConfirm = false
     @FocusState private var focused: Bool
     @StateObject private var weather = WeatherFetcher()
 
@@ -140,6 +141,21 @@ struct EntryEditorView: View {
                         .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.dgCard))
                         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.dgLine, lineWidth: 1))
                     }
+
+                    // 일기 삭제 (기존 일기가 있을 때만)
+                    if existing != nil {
+                        Button(role: .destructive) { showDeleteConfirm = true } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "trash")
+                                Text("일기 삭제").font(.system(size: 15, weight: .semibold))
+                            }
+                            .foregroundStyle(Color(hex: "E4572E"))
+                            .frame(maxWidth: .infinity).padding(.vertical, 14)
+                            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.dgCard))
+                            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.dgLine, lineWidth: 1))
+                        }
+                        .padding(.top, 6)
+                    }
                 }
                 .padding(20)
             }
@@ -162,7 +178,21 @@ struct EntryEditorView: View {
                     if let d = try? await item.loadTransferable(type: Data.self) { photo = d }
                 }
             }
+            .confirmationDialog("이 일기를 삭제할까요?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+                Button("삭제", role: .destructive) { deleteEntry() }
+                Button("취소", role: .cancel) {}
+            } message: {
+                Text("삭제하면 되돌릴 수 없어요.")
+            }
         }
+    }
+
+    private func deleteEntry() {
+        if let e = existing {
+            context.delete(e)
+            try? context.save()
+        }
+        dismiss()
     }
 
     // 위치·날씨·시간 기록 줄
