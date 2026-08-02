@@ -44,8 +44,6 @@ struct CalendarTabView: View {
                         yearStrip
                         monthHeader
                         grid
-                        Text("색이 진할수록 그 날의 기록이에요")
-                            .font(.system(size: 11)).foregroundStyle(Color.dgSub)
                     }
                     .padding(.horizontal, 20).padding(.bottom, 30)
                 }

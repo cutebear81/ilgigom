@@ -77,14 +77,18 @@ struct DayPageView: View {
                         Spacer()
                         if let m = e?.mood { Text(m.emoji).font(.system(size: 18)) }
                     }
-                } else if let m = e?.mood {
-                    HStack { Spacer(); Text(m.emoji).font(.system(size: 18)) }
-                }
-                // 해시태그를 내용 위쪽으로 (펼침 카드)
-                if !showLabel, let e, !e.hashtags.isEmpty {
-                    Text(e.hashtags.joined(separator: " "))
-                        .font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.dgAccent)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    // 해시태그(좌)와 이모티콘(우)을 같은 줄, 같은 높이로 (펼침 카드)
+                    if !(e?.hashtags.isEmpty ?? true) || e?.mood != nil {
+                        HStack(alignment: .center) {
+                            if let e, !e.hashtags.isEmpty {
+                                Text(e.hashtags.joined(separator: " "))
+                                    .font(.system(size: 13, weight: .semibold)).foregroundStyle(Color.dgAccent)
+                            }
+                            Spacer()
+                            if let m = e?.mood { Text(m.emoji).font(.system(size: 18)) }
+                        }
+                    }
                 }
                 Text(emptyText ? "오늘 한 줄…" : e!.text)
                     .font(.system(size: 16))
@@ -285,12 +289,17 @@ struct FullYearCard: View {
             Group {
                 if let e = entry, !e.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        // 해시태그를 내용 위쪽으로
-                        if !e.hashtags.isEmpty {
-                            Text(e.hashtags.joined(separator: " "))
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(Color.dgAccent)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                        // 상단: 해시태그(좌) + 이모티콘(우)을 같은 줄, 같은 높이로 (오늘 카드와 동일 위치)
+                        if !e.hashtags.isEmpty || e.mood != nil {
+                            HStack(alignment: .center) {
+                                if !e.hashtags.isEmpty {
+                                    Text(e.hashtags.joined(separator: " "))
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(Color.dgAccent)
+                                }
+                                Spacer()
+                                if let m = e.mood { Text(m.emoji).font(.system(size: 18)) }
+                            }
                         }
                         if !e.text.isEmpty {
                             Text(e.text)
@@ -302,14 +311,6 @@ struct FullYearCard: View {
                             Image(uiImage: ui).resizable().scaledToFill()
                                 .frame(maxWidth: .infinity).frame(height: 160)
                                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        }
-                        if let m = e.mood {
-                            HStack(spacing: 6) {
-                                Text(m.emoji).font(.system(size: 18))
-                                if e.photo != nil {
-                                    Text("사진 1장").font(.system(size: 12)).foregroundStyle(subColor)
-                                }
-                            }
                         }
                     }
                     .padding(18)
