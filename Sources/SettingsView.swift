@@ -109,7 +109,7 @@ struct SettingsView: View {
                             }
                             divider
                             Button {
-                                openURL(URL(string: "mailto:tonyneplanning@gmail.com?subject=일기곰%20문의")!)
+                                openURL(URL(string: "mailto:help@tonyne.kr?subject=일기곰%20문의")!)
                             } label: {
                                 linkRow(icon: "envelope", title: "문의하기")
                             }

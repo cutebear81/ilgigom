@@ -4,7 +4,7 @@
 
 ## 문의
 
-- 이메일: **tonyneplanning@gmail.com**
+- 이메일: **help@tonyne.kr**
 - 문의 시 사용 기기(예: iPhone 15)와 iOS 버전을 함께 적어주시면 더 빠르게 도와드릴 수 있습니다.
 
 ## 자주 묻는 질문

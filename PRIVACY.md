@@ -40,4 +40,4 @@
 
 ## 8. 문의
 
-개인정보 관련 문의: **tonyneplanning@gmail.com**
+개인정보 관련 문의: **help@tonyne.kr**
